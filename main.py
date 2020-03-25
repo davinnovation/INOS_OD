@@ -90,7 +90,6 @@ def main():
     # Define optimizer and loss function (criterion)
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[30,60,80,100], gamma=0.5)
     optimizer = torch.optim.SGD(model.parameters(), args.learning_rate, momentum=0.9, weight_decay=2e-4)
-    criterion = torch.nn.CrossEntropyLoss()
 
     epoch = 0
     best_prec = 0
