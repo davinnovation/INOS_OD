@@ -14,7 +14,6 @@ import torchvision.transforms as transforms
 import numpy as np
 import scipy.io.wavfile as wavf
 
-
 class Crop_ImageNet:
     """
     Oxford Flower dataset featuring gray-scale 28x28 images of
@@ -127,4 +126,4 @@ class Crop_ImageNet:
         if self.target_transform is not None:
             target = self.target_transform(target)
 
-        return sample, (target, score)
+        return sample, target, score

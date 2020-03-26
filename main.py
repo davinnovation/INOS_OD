@@ -27,7 +27,6 @@ from lib.Training.validate import validate
 from lib.Training.loss_functions import loss_function as criterion
 from lib.Utility.utils import save_checkpoint, save_task_checkpoint
 from lib.Utility.visualization import args_to_tensorboard
-from lib.Utility.visualization import visualize_dataset_in_2d_embedding
 
 
 # Comment this if CUDNN benchmarking is not desired
@@ -49,7 +48,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Launch a writer for the tensorboard summary writer instance
-    save_path = 'runs/' + strftime("%Y-%m-%d_%H-%M-%S", gmtime()) + '_' + args.dataset + '_' + args.architecture +\
+    save_path = 'runs/' + strftime("%Y-%m-%d_%H-%M-%S", gmtime()) + '_' + args.dataset + '_' + args.architecture
 
     # if we are resuming a previous training, note it in the name
     if args.resume:
@@ -88,8 +87,8 @@ def main():
     WeightInitializer.init_model(model)
 
     # Define optimizer and loss function (criterion)
-    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[30,60,80,100], gamma=0.5)
     optimizer = torch.optim.SGD(model.parameters(), args.learning_rate, momentum=0.9, weight_decay=2e-4)
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[30,60,80,100], gamma=0.5)
 
     epoch = 0
     best_prec = 0
