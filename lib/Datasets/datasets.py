@@ -14,6 +14,24 @@ import torchvision.transforms as transforms
 import numpy as np
 import scipy.io.wavfile as wavf
 
+# class CropImageNet(datasets.ImageNet):
+class CropImageNet(datasets.ImageFolder):
+    def __init__(self, root, split='train', download=None, **kwargs):
+        super(CropImageNet, self).__init__(root, **kwargs)
+
+    def __getitem__(self, index):
+        path, target = self.imgs[index]
+        basename = os.path.basename(path)[:-4]
+        score = int(basename.split('_')[-1])
+        score = float(score)/100
+        sample = self.loader(path)
+        if self.transform is not None:
+            sample = self.transform(sample)
+        if self.target_transform is not None:
+            target = self.target_transform(target)
+
+        return sample, target, score
+
 class Crop_ImageNet:
     """
     Oxford Flower dataset featuring gray-scale 28x28 images of
@@ -45,7 +63,7 @@ class Crop_ImageNet:
     def __init__(self, is_gpu, args):
         self.num_classes = 1000
 
-        self.train_transforms, self.val_transforms = self.__get_transforms(256)
+        self.train_transforms, self.val_transforms = self.__get_transforms(args.patch_size)
 
         # self.wnids_to_name = self.get_context()
         self.class_to_idx = {}
@@ -59,7 +77,7 @@ class Crop_ImageNet:
         # creation of the dataset and no longer in the incremental datasets that inherit.
         # Adding data augmentation here is thus the wrong place!
         train_transforms = transforms.Compose([
-            transforms.RandomCrop(patch_size, patch_size),
+            transforms.RandomCrop(patch_size),
             transforms.RandomHorizontalFlip(),
             # transforms.Resize(size=(patch_size, patch_size)),
             transforms.ToTensor(),
@@ -84,9 +102,9 @@ class Crop_ImageNet:
 
         root = './datasets/ImageNet_cropped' 
         
-        trainset = datasets.ImageFolder(root=root+'/train/', transform=self.train_transforms,
+        trainset = CropImageNet(root=root+'/train/', transform=self.train_transforms,
                                          target_transform=None)
-        valset = datasets.ImageFolder(root=root+'/valid/', transform=self.val_transforms,
+        valset = CropImageNet(root=root+'/valid/', transform=self.val_transforms,
                                        target_transform=None)
         self.class_to_idx = trainset.class_to_idx
         return trainset, valset
@@ -115,15 +133,3 @@ class Crop_ImageNet:
             num_workers=workers, pin_memory=is_gpu)
 
         return train_loader, val_loader
-
-    def __getitem__(self, index):
-        path, target = self.imgs[index]
-        basename = os.path.basename(path)[:-4]
-        score = int(basename.split('_')[-1])
-        sample = self.loader(path)
-        if self.transform is not None:
-            sample = self.transform(sample)
-        if self.target_transform is not None:
-            target = self.target_transform(target)
-
-        return sample, target, score

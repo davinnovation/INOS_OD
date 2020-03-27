@@ -29,15 +29,18 @@ def train(Dataset, model, criterion, epoch, optimizer, writer, device, args):
     data_time = AverageMeter()
 
     top1 = AverageMeter()
+    top5 = AverageMeter()
 
     # switch to train mode
     model.train()
 
     end = time.time()
     # train
-    for i, (inp, target) in enumerate(Dataset.train_loader):
+    for i, (inp, target, mm_score) in enumerate(Dataset.train_loader):
         inp = inp.to(device)
         target = target.to(device)
+        mm_score = (mm_score.float()).to(device)
+        target = [target, mm_score]
 
         class_target = target[0]
 
@@ -53,7 +56,9 @@ def train(Dataset, model, criterion, epoch, optimizer, writer, device, args):
 
         # record precision/accuracy and losses
         prec1 = accuracy(output, class_target)[0]
+        prec5 = accuracy(output, class_target, topk=(5,))[0]
         top1.update(prec1.item(), inp.size(0))
+        top5.update(prec5.item(), inp.size(0))
         class_losses.update(cl.item(), inp.size(0))
         inos_losses.update(rl.item(), inp.size(0))
         losses.update(loss.item(), inp.size(0))
@@ -74,12 +79,14 @@ def train(Dataset, model, criterion, epoch, optimizer, writer, device, args):
                   'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
                   'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
                   'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
+                  'Prec@5 {top5.val:.3f} ({top5.avg:.3f})\t'
                   .format(
                    epoch+1, i, len(Dataset.train_loader), batch_time=batch_time,
-                   data_time=data_time, loss=losses, top1=top1))
+                   data_time=data_time, loss=losses, top1=top1, top5 = top5))
 
     # TensorBoard summary logging
     writer.add_scalar('train/precision@1', top1.avg, epoch)
+    writer.add_scalar('train/precision@5', top5.avg, epoch)
     writer.add_scalar('train/average_loss', losses.avg, epoch)
     writer.add_scalar('train/class_loss',class_losses.avg, epoch)
     writer.add_scalar('train/inos_loss', inos_losses.avg, epoch)

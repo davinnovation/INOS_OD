@@ -39,9 +39,11 @@ def validate(Dataset, model, criterion, epoch, writer, device, save_path, args):
     inos_losses = AverageMeter()
     batch_time = AverageMeter()
     top1 = AverageMeter()
+    top5 = AverageMeter()
 
     # confusion matrix
     confusion = ConfusionMeter(model.module.num_classes, normalized=True)
+    confusion_inos = ConfusionMeter(10, normalized=True)
 
     # switch to evaluate mode
     model.eval()
@@ -49,9 +51,11 @@ def validate(Dataset, model, criterion, epoch, writer, device, save_path, args):
     end = time.time()
     # evaluate the entire validation dataset
     with torch.no_grad():
-        for i, (inp, target) in enumerate(Dataset.val_loader):
+        for i, (inp, target, mm_score) in enumerate(Dataset.val_loader):
             inp = inp.to(device)
             target = target.to(device)
+            mm_score = (mm_score.float()).to(device)
+            target = [target, mm_score]
 
             recon_target = inp
             class_target = target[0]
@@ -65,10 +69,12 @@ def validate(Dataset, model, criterion, epoch, writer, device, save_path, args):
 
             # measure accuracy, record loss, fill confusion matrix
             prec1 = accuracy(output, class_target)[0]
+            prec5 = accuracy(output, class_target, topk=(5,))[0]
             top1.update(prec1.item(), inp.size(0))
+            top5.update(prec5.item(), inp.size(0))
             class_losses.update(cl.item(), inp.size(0))
             inos_losses.update(rl.item(), inp.size(0))
-            confusion.add(output.data, target)
+            confusion.add(output.data, target[0])
 
             # measure elapsed time
             batch_time.update(time.time() - end)
@@ -82,12 +88,14 @@ def validate(Dataset, model, criterion, epoch, writer, device, save_path, args):
                       'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t' 
                       'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
                       'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
+                      'Prec@5 {top5.val:.3f} ({top5.avg:.3f})\t'
                        .format(
                        epoch+1, i, len(Dataset.val_loader), batch_time=batch_time, loss=losses, 
-                       top1=top1))
+                       top1=top1, top5=top5))
 
     # TensorBoard summary logging
     writer.add_scalar('validation/precision@1', top1.avg, epoch)
+    writer.add_scalar('validation/precision@5', top5.avg, epoch)
     writer.add_scalar('validation/average_loss', losses.avg, epoch)
     writer.add_scalar('validation/class_loss',class_losses.avg, epoch)
     writer.add_scalar('validation/inos_loss', inos_losses.avg, epoch)

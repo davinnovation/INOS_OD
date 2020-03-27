@@ -14,11 +14,6 @@ parser = argparse.ArgumentParser(description='PyTorch Variational Training')
 parser.add_argument('--dataset', default='Crop_ImageNet', help='name of dataset')
 parser.add_argument('-j', '--workers', default=4, type=int, help='number of data loading workers (default: 4)')
 parser.add_argument('-p', '--patch-size', default=224, type=int, help='patch size for crops (default: 28)')
-parser.add_argument('--gray-scale', default=False, type=bool, help='use gray scale images (default: False). '
-                                                                   'If false, single channel images will be repeated '
-                                                                   'to three channels.')
-parser.add_argument('-noise', '--denoising-noise-value', default=0, type=float,
-                    help='noise value for denoising. (float in range [0, 1]. Default: 0.25)')
 
 # Architecture and weight-init
 parser.add_argument('-a', '--architecture', default='vgg', help='model architecture (default: vgg)')
@@ -26,7 +21,7 @@ parser.add_argument('--depth', default='16', help='model architecture  depth (de
 parser.add_argument('--pretrained', action='store_true', help= 'using defautl image-net pretrained model')
 parser.add_argument('--weight_init', default = 'kaiming-normal')
 
-parser.add_argument('-inos','--in_and_out_score', action = 'store_true', help="inable inos self-supervised")
+parser.add_argument('-inos','--in-and-out-score', action = 'store_true', help="inable inos self-supervised")
 parser.add_argument('--inos-loss', default = 'BCEWithLogitsLoss', help ="inos score regression loss" 
                                                                         "option: BCEWithLogitsLoss"
                                                                         "SmoothL1Loss"
