@@ -64,13 +64,13 @@ class Crop_ImageNet:
         #self.num_classes = 1000
         self.num_classes = args.num_class
 
-        self.train_transforms, self.val_transforms = self.__get_transforms(args.patch_size)
+        self.train_transforms, self.val_transforms, self.test_transforms = self.__get_transforms(args.patch_size)
 
         # self.wnids_to_name = self.get_context()
         self.class_to_idx = {}
 
-        self.trainset, self.valset = self.get_dataset(args)
-        self.train_loader, self.val_loader = self.get_dataset_loader(args.batch_size, args.workers, is_gpu)
+        self.trainset, self.valset, self.testset = self.get_dataset(args)
+        self.train_loader, self.val_loader, self.test_loader = self.get_dataset_loader(args.batch_size, args.workers, is_gpu)
     
     def __get_transforms(self, patch_size):
         # optionally scale the images and repeat to three channels
@@ -89,7 +89,12 @@ class Crop_ImageNet:
             transforms.ToTensor(),
         ])
 
-        return train_transforms, val_transforms
+        test_transforms = transforms.Compose([
+            transforms.Resize(size=(patch_size, patch_size)),
+            transforms.ToTensor(),
+        ])
+
+        return train_transforms, val_transforms, test_transforms
 
     def get_dataset(self, args):
         """
@@ -103,13 +108,18 @@ class Crop_ImageNet:
 
         #root = './datasets/ImageNet_cropped' 
         root = args.dataroot
+        testroot = args.testroot
         
         trainset = CropImageNet(root=root+'/train/', transform=self.train_transforms,
                                          target_transform=None)
         valset = CropImageNet(root=root+'/valid/', transform=self.val_transforms,
                                        target_transform=None)
+        #test with original imagenet validation
+        testset = CropImageNet(root=testroot+'/valid/', transform=self.test_transforms,
+                                       target_transform=None)
+
         self.class_to_idx = trainset.class_to_idx
-        return trainset, valset
+        return trainset, valset, testset
 
     def get_dataset_loader(self, batch_size, workers, is_gpu):
         """
@@ -134,4 +144,9 @@ class Crop_ImageNet:
             batch_size=batch_size, shuffle=False,
             num_workers=workers, pin_memory=is_gpu)
 
-        return train_loader, val_loader
+        test_loader = torch.utils.data.DataLoader(
+            self.testset,
+            batch_size=batch_size, shuffle=False,
+            num_workers=workers, pin_memory=is_gpu)
+
+        return train_loader, val_loader, test_loader

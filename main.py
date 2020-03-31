@@ -24,6 +24,7 @@ from lib.Models.initialization import WeightInit
 from lib.cmdparser import parser
 from lib.Training.train import train
 from lib.Training.validate import validate
+from lib.Training.test import test
 from lib.Training.loss_functions import loss_function as criterion
 from lib.Utility.utils import save_checkpoint, save_task_checkpoint
 from lib.Utility.visualization import args_to_tensorboard
@@ -120,6 +121,9 @@ def main():
 
         # evaluate on validation set
         prec, loss = validate(dataset, model, criterion, epoch, writer, device, save_path, args)
+
+        # evaluate on test set
+        prec_t, loss_t = test(dataset, model, criterion, epoch, writer, device, save_path, args)
 
         # remember best prec@1 and save checkpoint
         is_best = loss < best_loss

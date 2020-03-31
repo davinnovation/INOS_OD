@@ -13,6 +13,7 @@ parser = argparse.ArgumentParser(description='PyTorch Variational Training')
 # Dataset and loading
 parser.add_argument('--dataset', default='Crop_ImageNet', help='name of dataset')
 parser.add_argument('--dataroot', default='./datasets/ImageNet_cropped', help='name of root')
+parser.add_argument('--testroot', default='./datasets/VOC_ImageNet', help='name of test root')
 parser.add_argument('-j', '--workers', default=4, type=int, help='number of data loading workers (default: 4)')
 parser.add_argument('-p', '--patch-size', default=224, type=int, help='patch size for crops (default: 28)')
 parser.add_argument('--num_class', default=1000, type=int, help='number of classes(default: 1000)')
