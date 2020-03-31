@@ -75,16 +75,17 @@ def main():
     log.close()
     
     # build the model
-    model = architectures.Inos_model(1000, args)
+    model = architectures.Inos_model(args.num_class, args)
 
     # Parallel container for multi GPU use and cast to available device
     model = torch.nn.DataParallel(model).to(device)
     print(model)
 
-    # Initialize the weights of the model, by default according to He et al.
-    print("Initializing network with: " + args.weight_init)
-    WeightInitializer = WeightInit(args.weight_init)
-    WeightInitializer.init_model(model)
+    if not args.pretrained :
+        # Initialize the weights of the model, by default according to He et al.
+        print("Initializing network with: " + args.weight_init)
+        WeightInitializer = WeightInit(args.weight_init)
+        WeightInitializer.init_model(model)
 
     # Define optimizer and loss function (criterion)
     optimizer = torch.optim.SGD(model.parameters(), args.learning_rate, momentum=0.9, weight_decay=2e-4)

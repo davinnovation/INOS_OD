@@ -61,14 +61,15 @@ class Crop_ImageNet:
     """
 
     def __init__(self, is_gpu, args):
-        self.num_classes = 1000
+        #self.num_classes = 1000
+        self.num_classes = args.num_class
 
         self.train_transforms, self.val_transforms = self.__get_transforms(args.patch_size)
 
         # self.wnids_to_name = self.get_context()
         self.class_to_idx = {}
 
-        self.trainset, self.valset = self.get_dataset()
+        self.trainset, self.valset = self.get_dataset(args)
         self.train_loader, self.val_loader = self.get_dataset_loader(args.batch_size, args.workers, is_gpu)
     
     def __get_transforms(self, patch_size):
@@ -90,7 +91,7 @@ class Crop_ImageNet:
 
         return train_transforms, val_transforms
 
-    def get_dataset(self):
+    def get_dataset(self, args):
         """
         Uses torchvision.datasets.ImageFoder to load dataset.
         Downloads dataset if doesn't exist already.
@@ -100,7 +101,8 @@ class Crop_ImageNet:
              torch.utils.data.TensorDataset: trainset, valset
         """
 
-        root = './datasets/ImageNet_cropped' 
+        #root = './datasets/ImageNet_cropped' 
+        root = args.dataroot
         
         trainset = CropImageNet(root=root+'/train/', transform=self.train_transforms,
                                          target_transform=None)
