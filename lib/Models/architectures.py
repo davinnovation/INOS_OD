@@ -25,7 +25,7 @@ class Inos_model(nn.Module):
         self.feature_extractor = model
 
         self.cls = nn.Linear(self.in_features, num_classes)
-        self.inos = nn.Linear(self.in_features, 1)
+        self.inos = nn.Linear(self.in_features, 11)
 
     def forward(self, x):
         x = self.feature_extractor(x)

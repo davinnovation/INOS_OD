@@ -23,7 +23,7 @@ class CropImageNet(datasets.ImageFolder):
         path, target = self.imgs[index]
         basename = os.path.basename(path)[:-4]
         score = int(basename.split('_')[-1])
-        score = float(score)/100
+        score = int(score)/10
         sample = self.loader(path)
         if self.transform is not None:
             sample = self.transform(sample)

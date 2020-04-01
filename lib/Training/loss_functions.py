@@ -10,11 +10,12 @@ def loss_function(output_samples_classification, target, output_samples_score, d
 
     # args.in_and_out_score = True
     if args.in_and_out_score:
-        inos_loss = getattr(nn, args.inos_loss)()
-        # nn.BCEWithLogitsLoss()
-        if args.inos_loss !="BCEWithLogitsLoss":
-        	output_samples_score = nn.Sigmoid()(output_samples_score)
-        rl = inos_loss(output_samples_score.squeeze(),target[1].float())
+        # inos_loss = getattr(nn, args.inos_loss)()
+        # # nn.BCEWithLogitsLoss()
+        # if args.inos_loss !="BCEWithLogitsLoss":
+        # 	output_samples_score = nn.Sigmoid()(output_samples_score)
+        # rl = inos_loss(output_samples_score.squeeze(),target[1].float())
+        rl = class_loss(output_samples_score.squeeze(),target[1])
     else:
         rl = torch.tensor(0)
 
