@@ -34,7 +34,7 @@ parser.add_argument('--inos-loss', default = 'BCEWithLogitsLoss', help ="inos sc
 # Training hyper-parameters
 parser.add_argument('--epochs', default=200, type=int, help='number of total epochs to run')
 parser.add_argument('-b', '--batch-size', default=128, type=int, help='mini-batch size (default: 128)')
-parser.add_argument('-lr', '--learning-rate', default=0.1, type=float, help='initial learning rate (default: 0.1)')
+parser.add_argument('-lr', '--learning-rate', default=0.01, type=float, help='initial learning rate (default: 0.1)')
 parser.add_argument('-pf', '--print-freq', default=100, type=int, help='print frequency (default: 100)')
 parser.add_argument('-log', '--log-weights', default=False, type=bool,
                     help='Log weights and gradients to TensorBoard (default: False)')
