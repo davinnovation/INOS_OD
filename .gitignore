@@ -4,3 +4,9 @@ data/
 *__pycache__
 *runs
 won/
+won/class.txt
+won/change_name.py
+won/class.txt
+won/cp_file.py
+won/crop_imagenet.py
+won/rm_not100.py
