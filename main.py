@@ -65,11 +65,6 @@ def main():
     # Dataset loading
     data_init_method = getattr(datasets, args.dataset)
     dataset = data_init_method(torch.cuda.is_available(), args)
-    # get the number of classes from the class dictionary
-    num_classes = dataset.num_classes
-
-    # we set an epoch multiplier to 1 for isolated training and increase it proportional to amount of tasks in CL
-    epoch_multiplier = 1
 
     # add command line options to TensorBoard
     args_to_tensorboard(writer, args)
@@ -90,7 +85,7 @@ def main():
 
     # Define optimizer and loss function (criterion)
     optimizer = torch.optim.SGD(model.parameters(), args.learning_rate, momentum=0.9, weight_decay=2e-4)
-    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[30,60,80,100], gamma=0.5)
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[30,60,90,100], gamma=0.1)
 
     epoch = 0
     best_prec = 0
@@ -105,16 +100,15 @@ def main():
             best_prec = checkpoint['best_prec']
             best_loss = checkpoint['best_loss']
             model.load_state_dict(checkpoint['state_dict'])
-            # optimizer.load_state_dict(checkpoint['optimizer'])
+            scheduler.load_state_dict(checkpoint['scheduler'])
+            optimizer.load_state_dict(checkpoint['optimizer'])
             print("=> loaded checkpoint '{}' (epoch {})"
                   .format(args.resume, checkpoint['epoch']))
         else:
             print("=> no checkpoint found at '{}'".format(args.resume))
 
     # optimize until final amount of epochs is reached. Final amount of epochs is determined through the
-    while epoch < (args.epochs * epoch_multiplier):
-        if epoch+2 == epoch%args.epochs:
-            print("debug perpose")
+    while epoch < args.epochs:
 
         # train
         train(dataset, model, criterion, epoch, optimizer, writer, device, args)
@@ -122,19 +116,19 @@ def main():
         # evaluate on validation set
         prec, loss = validate(dataset, model, criterion, epoch, writer, device, save_path, args)
 
-        # evaluate on test set
-        prec_t, loss_t = test(dataset, model, criterion, epoch, writer, device, save_path, args)
-
         # remember best prec@1 and save checkpoint
-        is_best = loss < best_loss
+        is_best = prec > best_prec
         best_loss = min(loss, best_loss)
         best_prec = max(prec, best_prec)
+        
         save_checkpoint({'epoch': epoch,
                          'arch': args.architecture,
                          'state_dict': model.state_dict(),
                          'best_prec': best_prec,
                          'best_loss': best_loss,
-                         'optimizer': optimizer.state_dict()},
+                         'optimizer': optimizer.state_dict(),
+                         'scheduler': scheduler.state_dict(),
+                         },
                         is_best, save_path)
 
         # increment epoch counters

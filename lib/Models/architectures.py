@@ -15,14 +15,8 @@ class Inos_model(nn.Module):
         arch = args.architecture + str(args.depth)
         model_init = getattr(torchvision.models, arch)
         model = model_init(pretrained=args.pretrained)
-        if 'vgg' in arch:
-            caffe_model = torch.load("./data/pretrained_model/vgg16_caffe.pth")
-            model.load_state_dict(caffe_model)
-            self.in_features = model.classifier[-1].in_features
-            model.classifier =  model.classifier[:-1]
-        # else:
-        #     self.in_features = (*list(model._modules.values())[-1]).in_features
-        self.feature_extractor = model
+        self.in_features = model.fc.in_features
+        self.feature_extractor = (*list(model.children()[:-1]))
 
         self.cls = nn.Linear(self.in_features, num_classes)
         self.inos = nn.Linear(self.in_features, 1)

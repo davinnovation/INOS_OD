@@ -11,9 +11,10 @@ import argparse
 parser = argparse.ArgumentParser(description='PyTorch Variational Training')
 
 # Dataset and loading
-parser.add_argument('--dataset', default='Crop_ImageNet', help='name of dataset')
+parser.add_argument('--dataset', default='Inos_ImageNet', help='name of dataset')
+parser.add_argument('--in-part-score', default='0.7', type = int, help='Low bound of image crop')
+parser.add_argument('--out-part-score', default='1.2', type = int, help='upper bound of image resize')
 parser.add_argument('--dataroot', default='./datasets/ImageNet_cropped', help='name of root')
-parser.add_argument('--testroot', default='./datasets/VOC_ImageNet', help='name of test root')
 parser.add_argument('-j', '--workers', default=4, type=int, help='number of data loading workers (default: 4)')
 parser.add_argument('-p', '--patch-size', default=224, type=int, help='patch size for crops (default: 28)')
 parser.add_argument('--num_class', default=1000, type=int, help='number of classes(default: 1000)')
@@ -23,13 +24,7 @@ parser.add_argument('-a', '--architecture', default='vgg', help='model architect
 parser.add_argument('--depth', default='16', help='model architecture  depth (default: 16)')
 parser.add_argument('--pretrained', action='store_true', help= 'using defautl image-net pretrained model')
 parser.add_argument('--weight_init', default = 'kaiming-normal')
-
-parser.add_argument('-inos','--in-and-out-score', action = 'store_true', help="inable inos self-supervised")
-parser.add_argument('--inos-loss', default = 'BCEWithLogitsLoss', help ="inos score regression loss" 
-                                                                        "option: BCEWithLogitsLoss"
-                                                                        "SmoothL1Loss"
-                                                                        "(default: BCEWithLogitsLoss)")
-
+parser.add_argument('--inos-weight', default = 1, type=int, help='weight for regressoin head')
 
 # Training hyper-parameters
 parser.add_argument('--epochs', default=200, type=int, help='number of total epochs to run')

@@ -5,18 +5,8 @@ import torch.nn as nn
 def loss_function(output_samples_classification, target, output_samples_score, device, args):
     
     class_loss = nn.CrossEntropyLoss()
+    inos_loss = nn.SmoothL1Loss()
     cl = class_loss(output_samples_classification, target[0])
-    rl = None
-
-    # args.in_and_out_score = True
-    if args.in_and_out_score:
-         inos_loss = getattr(nn, args.inos_loss)()
-         # nn.BCEWithLogitsLoss()
-         if args.inos_loss !="BCEWithLogitsLoss":
-         	output_samples_score = nn.Sigmoid()(output_samples_score)
-         rl = inos_loss(output_samples_score.squeeze(),target[1].float())
-        #rl = class_loss(output_samples_score.squeeze(),target[1].long())
-    else:
-        rl = torch.tensor(0)
+    rl = inos_loss(output_samples_score, target[1])
 
     return cl, rl

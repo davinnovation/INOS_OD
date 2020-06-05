@@ -36,13 +36,19 @@ def train(Dataset, model, criterion, epoch, optimizer, writer, device, args):
 
     end = time.time()
     # train
-    for i, (inp, target, mm_score) in enumerate(Dataset.train_loader):
+    for i, (inp, target) in enumerate(Dataset.train_loader):
         inp = inp.to(device)
         target = target.to(device)
-        mm_score = (mm_score.float()).to(device)
+        # inos_range (0.7 ~ 1.2)
+        mm_score = torch.randint(args.in_part_score, args.out_part_score, target.size())
+        mm_score = (mm_score*0.1).to(device)
         target = [target, mm_score]
 
         class_target = target[0]
+        bbox_edge = mm_score * args.patch_size
+        #Cropping 1 <= 0 && 1> resizing
+
+        inp = torch.nn.functional.interpolate(inp, size=(args.patch_size,args.patch_size), mode='bilinear')
 
         # measure data loading time
         data_time.update(time.time() - end)
@@ -52,7 +58,7 @@ def train(Dataset, model, criterion, epoch, optimizer, writer, device, args):
 
         # calculate loss
         cl, rl = criterion(output, target, score, device, args)
-        loss = cl + rl
+        loss = cl + (args.inos_weight * rl)
 
         # record precision/accuracy and losses
         prec1 = accuracy(output, class_target)[0]

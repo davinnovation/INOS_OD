@@ -51,11 +51,10 @@ def validate(Dataset, model, criterion, epoch, writer, device, save_path, args):
     end = time.time()
     # evaluate the entire validation dataset
     with torch.no_grad():
-        for i, (inp, target, mm_score) in enumerate(Dataset.val_loader):
+        for i, (inp, target) in enumerate(Dataset.val_loader):
             inp = inp.to(device)
             target = target.to(device)
-            mm_score = (mm_score.float()).to(device)
-            target = [target, mm_score]
+            target = [target, torch.ones_like(target)*1.0]
 
             recon_target = inp
             class_target = target[0]
@@ -64,7 +63,7 @@ def validate(Dataset, model, criterion, epoch, writer, device, save_path, args):
             output, score = model(inp)
 
             # compute loss
-            cl,rl = criterion(output, target, score, device, args)
+            cl, rl = criterion(output, target, score, device, args)
             loss = cl + rl
 
             # measure accuracy, record loss, fill confusion matrix
