@@ -36,46 +36,51 @@ def train(Dataset, model, criterion, epoch, optimizer, writer, device, args):
     model.train()
 
     end = time.time()
-    in_score = args.in_part_score * 10
-    out_score = args.out_part_score * 10
+    in_score = int(args.in_part_score * 10)
+    out_score = int(args.out_part_score * 10)
     # train
     for i, (pre_inp, pre_target) in enumerate(Dataset.train_loader):
         inp = torch.zeros(pre_inp.size(0), 3, args.patch_size, args.patch_size)
         target = torch.zeros(2, pre_inp.size(0))
         
         # inos_range (0.7 ~ 1.2)
-        mm_score = torch.randint(in_score, out_score, target.size())
+        mm_score = torch.randint(in_score, out_score, size=(pre_inp.size(0),))
         mm_score = (mm_score*0.1)
 
         #Cropping 1 <= 0 && 1> resizing
         cur_pos_inp = 0
         for k in range(in_score, out_score):
-            temp_inp = pre_inp[mm_score == (k*0.1)]
+            temp_inp = pre_inp[mm_score == (k*0.1), :,:,:]
             temp_target = pre_target[mm_score == (k*0.1)]
             bbox_edge = args.patch_size
             if k*0.1 < 1.0:
-                bbox_edge = math.floor(mm_score * args.patch_size)
+                bbox_edge = math.floor(k* 0.1 * args.patch_size)
                 
-            x_start = torch.randint(0, pre_inp.size(2)-bbox_edge, temp_target.size(0))
-            y_start = torch.randint(0, pre_inp.size(2)-bbox_edge, temp_target.size(0))
-            temp_inp = temp_inp[idx, :,
+            x_start = torch.randint(0, pre_inp.size(2)-bbox_edge, size=(temp_target.size(0),))
+            y_start = torch.randint(0, pre_inp.size(2)-bbox_edge, size=(temp_target.size(0),))
+            temp_re_inp =  torch.zeros(temp_target.size(0),3, bbox_edge, bbox_edge)
+            for idx in range(temp_target.size(0)):
+                ##original  temp_inp = [B,3,X(256),y(256)]
+                ## resize-> temp_inp = [B,3,224,224]
+                temp_re_inp[idx] = temp_inp[idx, :,
                      x_start[idx]: x_start[idx]+bbox_edge,
-                     y_start[idx]: y_start[idx]+bbox_edge
-                     for idx in range(temp_target.size(0))
-                    ]
-            if k*0.1 < 1.0:
-                temp_inp = torch.nn.functional.interpolate(temp_inp, size=(args.patch_size, args.patch_size), mode='bilinear')
-            else:
-                bbox_edge = math.fllor((2.0 - k*0.1) * args.patch_size)
+                     y_start[idx]: y_start[idx]+bbox_edge]
+            if k*0.1 < 1.0: ## croping -> reize
+                temp_inp = torch.nn.functional.interpolate(temp_re_inp, size=(args.patch_size, args.patch_size), mode='bilinear')
+                del temp_re_inp
+            else: ## cropping -> zero padding
+                bbox_edge = math.floor((2.0 - k*0.1) * args.patch_size)
                 temp_inp = torch.nn.functional.interpolate(temp_inp, size=(bbox_edge, bbox_edge), mode='bilinear')
                 pad_size = math.floor((args.patch_size - bbox_edge)/2)
-                counter_pad_size = args.patch_size - pad_size
+                counter_pad_size = args.patch_size- bbox_edge - pad_size
                 temp_inp = torch.nn.functional.pad(temp_inp,(pad_size,counter_pad_size,pad_size,counter_pad_size))
 
             inp[cur_pos_inp:cur_pos_inp+temp_inp.size(0)] = temp_inp
             target[0, cur_pos_inp:cur_pos_inp+temp_inp.size(0)] = temp_target
-            target[1, cur_pos_inp:cur_pos_inp+temp_inp.size(0)] = k*0.1
+            target[1, cur_pos_inp:cur_pos_inp+temp_inp.size(0)] = torch.ones_like(temp_target)*k*0.1
             cur_pos_inp +=temp_inp.size(0)
+
+            del temp_inp, temp_target
 
         # measure data loading time
         inp = inp.to(device)
@@ -121,6 +126,8 @@ def train(Dataset, model, criterion, epoch, optimizer, writer, device, args):
                   .format(
                    epoch+1, i, len(Dataset.train_loader), batch_time=batch_time,
                    data_time=data_time, loss=losses, top1=top1, top5 = top5))
+            if args.debug:
+                break
 
     # TensorBoard summary logging
     writer.add_scalar('train/precision@1', top1.avg, epoch)

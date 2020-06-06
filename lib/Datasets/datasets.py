@@ -55,9 +55,9 @@ class Inos_ImageNet:
         #root = './datasets/ImageNet_cropped' 
         root = args.dataroot
         
-        trainset = dataset.ImageFoder(root=root+'/train/', transform=self.train_transforms,
+        trainset = datasets.ImageNet(root=root, split='train', transform=self.train_transforms,
                                          target_transform=None)
-        valset = dataset.ImageFoder(root=root+'/valid/', transform=self.val_transforms,
+        valset = datasets.ImageNet(root=root, split='val', transform=self.val_transforms,
                                        target_transform=None)
 
         self.class_to_idx = trainset.class_to_idx
