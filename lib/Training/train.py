@@ -49,7 +49,7 @@ def train(Dataset, model, criterion, epoch, optimizer, writer, device, args):
         #Cropping 1 <= 0 && 1> resizing
         cur_pos_inp = 0
         for k in range(in_score, out_score):
-            index_score = [mm_score == k]
+            index_score = mm_score == k
             if not sum(index_score):
                 continue
             temp_inp = pre_inp[index_score, :,:,:]
@@ -68,7 +68,7 @@ def train(Dataset, model, criterion, epoch, optimizer, writer, device, args):
                      x_start[idx]: x_start[idx]+bbox_edge,
                      y_start[idx]: y_start[idx]+bbox_edge]
             temp_inp = temp_re_inp.to(device)
-            #del temp_re_inp
+            del temp_re_inp
             if k*0.1 < 1.0: ## croping -> reize
                 temp_inp = torch.nn.functional.interpolate(temp_inp, size=(args.patch_size, args.patch_size), mode='bilinear')
             else: ## cropping -> zero padding
