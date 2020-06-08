@@ -37,37 +37,39 @@ def train(Dataset, model, criterion, epoch, optimizer, writer, device, args):
 
     end = time.time()
     in_score = int(args.in_part_score * 10)
-    out_score = int(args.out_part_score * 10)
+    out_score = int(args.out_part_score * 10) +1
     # train
     for i, (pre_inp, pre_target) in enumerate(Dataset.train_loader):
-        inp = torch.zeros(pre_inp.size(0), 3, args.patch_size, args.patch_size)
+        inp = torch.zeros(pre_inp.size(0), 3, args.patch_size, args.patch_size).to(device)
         target = torch.zeros(2, pre_inp.size(0))
         
         # inos_range (0.7 ~ 1.2)
         mm_score = torch.randint(in_score, out_score, size=(pre_inp.size(0),))
-        mm_score = (mm_score*0.1)
 
         #Cropping 1 <= 0 && 1> resizing
         cur_pos_inp = 0
         for k in range(in_score, out_score):
-            temp_inp = pre_inp[mm_score == (k*0.1), :,:,:]
-            temp_target = pre_target[mm_score == (k*0.1)]
+            if not sum(mm_score == k):
+                continue
+            temp_inp = pre_inp[mm_score == k, :,:,:]
+            temp_target = pre_target[mm_score == k]
             bbox_edge = args.patch_size
             if k*0.1 < 1.0:
                 bbox_edge = math.floor(k* 0.1 * args.patch_size)
-                
+            
+            temp_re_inp =  torch.zeros(temp_target.size(0),3, bbox_edge, bbox_edge)                
             x_start = torch.randint(0, pre_inp.size(2)-bbox_edge, size=(temp_target.size(0),))
             y_start = torch.randint(0, pre_inp.size(2)-bbox_edge, size=(temp_target.size(0),))
-            temp_re_inp =  torch.zeros(temp_target.size(0),3, bbox_edge, bbox_edge)
             for idx in range(temp_target.size(0)):
                 ##original  temp_inp = [B,3,X(256),y(256)]
                 ## resize-> temp_inp = [B,3,224,224]
                 temp_re_inp[idx] = temp_inp[idx, :,
                      x_start[idx]: x_start[idx]+bbox_edge,
                      y_start[idx]: y_start[idx]+bbox_edge]
+            temp_inp = temp_re_inp.to(device)
+            del temp_re_inp
             if k*0.1 < 1.0: ## croping -> reize
-                temp_inp = torch.nn.functional.interpolate(temp_re_inp, size=(args.patch_size, args.patch_size), mode='bilinear')
-                del temp_re_inp
+                temp_inp = torch.nn.functional.interpolate(temp_inp, size=(args.patch_size, args.patch_size), mode='bilinear')
             else: ## cropping -> zero padding
                 bbox_edge = math.floor((2.0 - k*0.1) * args.patch_size)
                 temp_inp = torch.nn.functional.interpolate(temp_inp, size=(bbox_edge, bbox_edge), mode='bilinear')
@@ -81,9 +83,10 @@ def train(Dataset, model, criterion, epoch, optimizer, writer, device, args):
             cur_pos_inp +=temp_inp.size(0)
 
             del temp_inp, temp_target
+        assert cur_pos_inp == args.batch_size, ("skipping image")
 
         # measure data loading time
-        inp = inp.to(device)
+        #inp = inp.to(device)
         target = target.to(device)
 
         class_target = target[0]
@@ -126,7 +129,7 @@ def train(Dataset, model, criterion, epoch, optimizer, writer, device, args):
                   .format(
                    epoch+1, i, len(Dataset.train_loader), batch_time=batch_time,
                    data_time=data_time, loss=losses, top1=top1, top5 = top5))
-            if args.debug:
+            if args.debug and i!= 0:
                 break
 
     # TensorBoard summary logging
