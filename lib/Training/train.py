@@ -6,6 +6,8 @@ import copy
 from lib.Utility.metrics import AverageMeter
 from lib.Utility.metrics import accuracy
 
+from tqdm import tqdm
+
 def train(Dataset, model, criterion, epoch, optimizer, writer, device, args):
     """
     Trains/updates the model for one epoch on the training dataset.
@@ -39,7 +41,7 @@ def train(Dataset, model, criterion, epoch, optimizer, writer, device, args):
     in_score = int(args.in_part_score * 10)
     out_score = int(args.out_part_score * 10) +1
     # train
-    for i, (pre_inp, pre_target) in enumerate(Dataset.train_loader):
+    for i, (pre_inp, pre_target) in enumerate(tqdm(Dataset.train_loader)):
         inp = torch.zeros(pre_inp.size(0), 3, args.patch_size, args.patch_size)
         target = torch.zeros(2, pre_inp.size(0))
         
