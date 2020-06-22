@@ -1,5 +1,4 @@
 import os
-import wget
 import scipy
 import math
 from tqdm import tqdm
