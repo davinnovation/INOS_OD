@@ -15,7 +15,7 @@ parser.add_argument('--dataset', default='Inos_ImageNet', help='name of dataset'
 parser.add_argument('--in-part-score', default=0.7, type = float, help='Low bound of image crop')
 parser.add_argument('--out-part-score', default=1.2, type = float, help='upper bound of image resize')
 parser.add_argument('--dataroot', default='/data/Imagenet/', help='name of root')
-parser.add_argument('-j', '--workers', default=64, type=int, help='number of data loading workers (default: 4)')
+parser.add_argument('-j', '--workers', default=80, type=int, help='number of data loading workers (default: 4)')
 parser.add_argument('-p', '--patch-size', default=224, type=int, help='patch size for crops (default: 28)')
 parser.add_argument('--num_class', default=1000, type=int, help='number of classes(default: 1000)')
 
