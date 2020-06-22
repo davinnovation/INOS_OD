@@ -10,7 +10,7 @@ import pickle
 import copy
 import pdb
 
-os.environ["CUDA_VISIBLE_DEVICES"]="1,2,3"
+#os.environ["CUDA_VISIBLE_DEVICES"]="1,2,3"
 
 # Tensorboard for PyTorch logging and visualization
 from torch.utils.tensorboard import SummaryWriter

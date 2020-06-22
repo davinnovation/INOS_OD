@@ -78,7 +78,7 @@ class Inos_ImageNet:
         train_loader = torch.utils.data.DataLoader(
             self.trainset,
             batch_size=batch_size, shuffle=True,
-            num_workers=workers, pin_memory=is_gpu, sampler=None)
+            num_workers=workers, pin_memory=is_gpu, sampler=None, drop_last=True)
 
         val_loader = torch.utils.data.DataLoader(
             self.valset,
